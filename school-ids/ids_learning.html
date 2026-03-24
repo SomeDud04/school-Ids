@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>School IDS — Learning Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #080c12;
+    --surface:   #0d1420;
+    --card:      #111827;
+    --border:    #1e2d40;
+    --accent:    #00d4ff;
+    --accent2:   #ff4757;
+    --accent3:   #2ed573;
+    --warn:      #ffa502;
+    --text:      #cdd9e5;
+    --muted:     #4d6178;
+    --mono:      'Share Tech Mono', monospace;
+    --head:      'Rajdhani', sans-serif;
+    --body:      'Inter', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8,12,18,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; gap: 2rem;
+    height: 56px;
+  }
+  .nav-logo {
+    font-family: var(--head);
+    font-size: 1.2rem; font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nav-logo::before {
+    content: '🛡';
+    font-size: 1rem;
+  }
+  .nav-tabs {
+    display: flex; gap: 0.25rem; flex: 1;
+  }
+  .nav-tab {
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-family: var(--head);
+    font-size: 0.85rem; font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--border); }
+  .nav-tab.active { color: var(--accent); background: rgba(0,212,255,0.1); }
+
+  /* ── AI Tutor ── */
+  .suggest-btn {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    color: var(--text); font-size: 0.78rem; padding: 6px 14px; cursor: pointer;
+    font-family: var(--body); transition: all 0.2s;
+  }
+  .suggest-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  .chat-msg { display: flex; gap: 10px; align-items: flex-start; }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-avatar { width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; background:var(--surface); border:1px solid var(--border); }
+  .chat-bubble {
+    max-width: 80%; padding: 10px 14px; border-radius: 8px;
+    font-size: 0.85rem; line-height: 1.65; white-space: pre-wrap;
+  }
+  .chat-msg.assistant .chat-bubble { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 2px 8px 8px 8px; }
+  .chat-msg.user .chat-bubble { background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.25); color: var(--accent); border-radius: 8px 2px 8px 8px; }
+  .chat-msg.assistant .chat-bubble strong { color: var(--accent); }
+  .chat-msg.assistant .chat-bubble code { background: var(--card); padding: 1px 5px; border-radius: 3px; font-family: var(--mono); font-size: 0.8rem; color: var(--accent3); }
+
+  .typing-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); margin: 0 2px; animation: typingBounce 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  .live-badge {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--mono);
+    font-size: 0.7rem; color: var(--accent3);
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+  .page.active { display: block; }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    padding: 4rem 2rem 3rem;
+  }
+  .hero-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-family: var(--head);
+    font-size: 3rem; font-weight: 700;
+    letter-spacing: 2px;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    font-size: 1rem; color: var(--muted);
+    max-width: 560px; margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+
+  /* ── ATTACK CARDS GRID ── */
+  .attacks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .attack-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .attack-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-accent, var(--accent));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .attack-card:hover { border-color: var(--card-accent, var(--accent)); transform: translateY(-2px); }
+  .attack-card:hover::before { transform: scaleX(1); }
+
+  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+  .card-icon { font-size: 1.5rem; }
+  .card-title { font-family: var(--head); font-size: 1rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .card-sev {
+    margin-left: auto;
+    font-family: var(--mono); font-size: 0.65rem;
+    padding: 2px 8px; border-radius: 2px;
+    font-weight: bold;
+  }
+  .sev-HIGH   { background: rgba(255,71,87,0.15);  color: var(--accent2); border: 1px solid rgba(255,71,87,0.3); }
+  .sev-MEDIUM { background: rgba(255,165,2,0.15);  color: var(--warn);    border: 1px solid rgba(255,165,2,0.3); }
+  .sev-LOW    { background: rgba(46,213,115,0.15); color: var(--accent3); border: 1px solid rgba(46,213,115,0.3); }
+
+  .card-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
+  .card-stats {
+    display: flex; gap: 1rem;
+    font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
+  }
+  .card-stat span { color: var(--accent); }
+
+  /* ── MODAL / LESSON ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 100%; max-width: 760px;
+    max-height: 90vh; overflow-y: auto;
+    padding: 2rem;
+    position: relative;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: var(--border); border: none;
+    color: var(--muted); cursor: pointer;
+    width: 32px; height: 32px; border-radius: 4px;
+    font-size: 1rem; display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-title {
+    font-family: var(--head); font-size: 1.6rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .modal-subtitle { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.5rem; font-family: var(--mono); }
+
+  .lesson-section { margin-bottom: 1.5rem; }
+  .lesson-section h3 {
+    font-family: var(--head); font-size: 0.9rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .lesson-section h3::before { content: '▸'; }
+  .lesson-section p { font-size: 0.88rem; line-height: 1.75; color: var(--text); }
+
+  /* ── ANIMATION CANVAS ── */
+  .anim-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    height: 140px;
+    position: relative;
+    overflow: hidden;
+    margin: 1rem 0;
+    display: flex; align-items: center;
+  }
+
+  .anim-label {
+    font-family: var(--mono); font-size: 0.65rem;
+    color: var(--muted); padding: 8px 12px;
+    position: absolute; top: 0; left: 0;
+  }
+
+  /* Packet animation */
+  .pkt {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    animation: fly 1.2s linear infinite;
+  }
+  @keyframes fly {
+    from { left: 60px; opacity: 1; }
+    to   { left: calc(100% - 80px); opacity: 0.2; }
+  }
+
+  .node {
+    position: absolute;
+    width: 48px; height: 48px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+  .node.attacker { left: 12px; top: 50%; transform: translateY(-50%); border-color: var(--accent2); }
+  .node.victim   { right: 12px; top: 50%; transform: translateY(-50%); border-color: var(--accent3); }
+  .node-label {
+    position: absolute;
+    font-family: var(--mono); font-size: 0.6rem; color: var(--muted);
+    top: calc(50% + 30px);
+  }
+  .node.attacker .node-label { left: 12px; }
+  .node.victim   .node-label { right: 12px; }
+
+  /* Rule box */
+  .rule-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    line-height: 1.8;
+    color: var(--text);
+  }
+  .rule-box .k { color: var(--accent2); }
+  .rule-box .v { color: var(--accent3); }
+  .rule-box .c { color: var(--muted); }
+
+  /* Quiz */
+  .quiz-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+  .quiz-q { font-size: 0.88rem; margin-bottom: 1rem; line-height: 1.6; }
+  .quiz-options { display: flex; flex-direction: column; gap: 0.5rem; }
+  .quiz-opt {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    color: var(--text);
+    font-family: var(--body);
+  }
+  .quiz-opt:hover { border-color: var(--accent); color: var(--accent); }
+  .quiz-opt.correct { border-color: var(--accent3); background: rgba(46,213,115,0.1); color: var(--accent3); }
+  .quiz-opt.wrong   { border-color: var(--accent2); background: rgba(255,71,87,0.1);  color: var(--accent2); }
+  .quiz-result { margin-top: 0.75rem; font-size: 0.8rem; font-family: var(--mono); display: none; }
+
+  /* ── LIVE ALERTS PAGE ── */
+  .live-header {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .live-header h2 { font-family: var(--head); font-size: 1.4rem; font-weight: 700; letter-spacing: 2px; }
+
+  .stat-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.25rem;
+  }
+  .stat-val { font-family: var(--head); font-size: 2rem; font-weight: 700; color: var(--accent); }
+  .stat-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  .alerts-table { width: 100%; border-collapse: collapse; }
+  .alerts-table th {
+    background: var(--surface); color: var(--muted);
+    font-family: var(--mono); font-size: 0.65rem;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 10px 12px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .alerts-table td {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    border-bottom: 1px solid rgba(30,45,64,0.5);
+    font-family: var(--mono);
+  }
+  .alerts-table tr:hover td { background: rgba(0,212,255,0.03); }
+
+  .fetch-btn {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent);
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-family: var(--head); font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .fetch-btn:hover { background: rgba(0,212,255,0.2); }
+
+  .no-data { text-align: center; padding: 3rem; color: var(--muted); font-family: var(--mono); font-size: 0.8rem; }
+
+  /* ── HOW IT WORKS PAGE ── */
+  .flow-steps {
+    display: flex; flex-direction: column; gap: 0;
+    margin: 1.5rem 0;
+  }
+  .flow-step {
+    display: flex; gap: 1.5rem;
+    padding: 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .flow-step:hover { border-color: var(--accent); }
+  .step-num {
+    font-family: var(--head); font-size: 2rem; font-weight: 700;
+    color: var(--accent); opacity: 0.3; min-width: 40px;
+  }
+  .step-content h4 { font-family: var(--head); font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 1px; }
+  .step-content p  { font-size: 0.83rem; color: var(--muted); line-height: 1.7; }
+
+  .arch-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem; margin-top: 1.5rem;
+  }
+  .arch-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.25rem; text-align: center;
+  }
+  .arch-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .arch-title { font-family: var(--head); font-size: 0.9rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.5rem; }
+  .arch-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
+
+  /* Page title */
+  .page-title {
+    font-family: var(--head); font-size: 1.6rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .page-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 2rem; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">School IDS</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home')">Home</button>
+    <button class="nav-tab" onclick="showPage('attacks')">Attack Types</button>
+    <button class="nav-tab" onclick="showPage('howitworks')">How It Works</button>
+    <button class="nav-tab" onclick="showPage('live')">Live Alerts</button>
+    <button class="nav-tab" onclick="showPage('aitutor')" style="color:var(--accent3);border:1px solid rgba(46,213,115,0.3)">🤖 AI Tutor</button>
+  </div>
+  <div class="live-badge"><div class="live-dot"></div>IDS MONITOR</div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: HOME
+══════════════════════════════════════════════════════════ -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-tag">BMCS3413 Project II — TAR UMT</div>
+    <h1>School Network<br><span>Intrusion Detection</span><br>Awareness System</h1>
+    <p>An educational platform to learn about network attacks, understand how intrusion detection works, and observe real-time alerts from live traffic analysis.</p>
+  </div>
+
+  <div class="arch-grid" style="margin-bottom:2rem">
+    <div class="arch-card" style="border-color:rgba(0,212,255,0.3)">
+      <div class="arch-icon">📡</div>
+      <div class="arch-title">Capture</div>
+      <div class="arch-desc">Live packet capture using Scapy on the school network interface</div>
+    </div>
+    <div class="arch-card" style="border-color:rgba(255,71,87,0.3)">
+      <div class="arch-icon">🔍</div>
+      <div class="arch-title">Detect</div>
+      <div class="arch-desc">Rule-based engine checks 8 attack patterns every second</div>
+    </div>
+    <div class="arch-card" style="border-color:rgba(46,213,115,0.3)">
+      <div class="arch-icon">🗄️</div>
+      <div class="arch-title">Alert & Log</div>
+      <div class="arch-desc">Alerts saved to SQLite + JSONL with event ID, severity, and source IP</div>
+    </div>
+  </div>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem;text-align:center">
+    <p style="font-family:var(--mono);font-size:0.8rem;color:var(--muted);margin-bottom:1rem">QUICK START — Navigate the platform</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <button class="fetch-btn" onclick="showPage('attacks')">📚 Learn Attack Types</button>
+      <button class="fetch-btn" onclick="showPage('howitworks')">⚙️ How Detection Works</button>
+      <button class="fetch-btn" onclick="showPage('live')">📡 View Live Alerts</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: ATTACK TYPES
+══════════════════════════════════════════════════════════ -->
+<div id="page-attacks" class="page">
+  <div class="page-title">Attack Types</div>
+  <div class="page-sub">Click any card to learn how the attack works and how our IDS detects it</div>
+
+  <!-- Progress Bar -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem">
+    <div style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);white-space:nowrap">YOUR PROGRESS</div>
+    <div style="flex:1;background:var(--bg);border-radius:4px;height:8px;overflow:hidden">
+      <div id="progress-bar" style="height:100%;background:var(--accent3);border-radius:4px;width:0%;transition:width 0.5s"></div>
+    </div>
+    <div id="progress-label" style="font-family:var(--mono);font-size:0.7rem;color:var(--accent3);white-space:nowrap">0 / 8 completed</div>
+    <button onclick="resetProgress()" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:0.65rem;padding:3px 8px;border-radius:3px;cursor:pointer;font-family:var(--mono)">Reset</button>
+  </div>
+
+  <div class="attacks-grid">
+
+    <div class="attack-card" style="--card-accent:#ff4757" onclick="openLesson('syn')">
+      <div class="card-header">
+        <div class="card-icon">🌊</div>
+        <div class="card-title">SYN Flood</div>
+        <div class="card-sev sev-HIGH">HIGH</div>
+      </div>
+      <div class="card-desc">Overwhelms a server by sending thousands of TCP SYN packets without completing the handshake, exhausting its connection table.</div>
+      <div class="card-stats">
+        <div>Window: <span>5s</span></div>
+        <div>Threshold: <span>50 pkts</span></div>
+        <div>Protocol: <span>TCP</span></div>
+      </div>
+    </div>
+
+    <div class="attack-card" style="--card-accent:#ffa502" onclick="openLesson('portscan')">
+      <div class="card-header">
+        <div class="card-icon">🔎</div>
+        <div class="card-title">Port Scan</div>
+        <div class="card-sev sev-MEDIUM">MEDIUM</div>
+      </div>
+      <div class="card-desc">Attacker probes many ports on a target to discover which services are running, gathering intelligence for a targeted attack.</div>
+      <div class="card-stats">
+        <div>Window: <span>10s</span></div>
+        <div>Threshold: <span>15 ports</span></div>
+        <div>Protocol: <span>TCP</span></div>
+      </div>
+    </div>
+
+    <div class="attack-card" style="--card-accent:#ff4757" onclick="openLesson('brute')">
+      <div class="card-header">
+        <div class="card-icon">🔐</div>
+        <div class="card-title">Brute Force</div>
+        <div class="card-sev sev-HIGH">HIGH</div>
+      </div>
+      <div class="card-desc">Repeated login attempts against services like SSH, FTP, or RDP by hammering connection requests to gain unauthorised access.</div>
+      <div class="card-stats">
+        <div>Window: <span>30s</span></div>
+        <div>Threshold: <span>20 pkts</span></div>
+        <div>Protocol: <span>TCP</span></div>
+      </div>
+    </div>
+
+    <div class="attack-card" style="--card-accent:#ffa502" onclick="openLesson('icmp')">
+      <div class="card-header">
+        <div class="card-icon">📶</div>
+        <div class="card-title">ICMP Flood</div>
+        <div class="card-sev sev-MEDIUM">MEDIUM</div>
+      </div>
+      <div class="card-desc">Also known as Ping Flood. Sends massive numbers of ICMP echo requests, forcing the target to waste resources replying to each one.</div>
+      <div class="card-stats">
+        <div>Window: <span>5s</span></div>
+        <div>Threshold: <span>30 pkts</span></div>
+        <div>Protocol: <span>ICMP</span></div>
+      </div>
+    </div>
+
+    <div class="attack-card" style="--card-accent:#ff4757" onclick="openLesson('udp')">
+      <div class="card-header">
+        <div class="card-icon">💥</div>
+        <div class="card-title">UDP Flood</div>
+        <div class="card-sev sev-HIGH">HIGH</div>
+      </div>
+      <div class="card-desc">Floods random ports with UDP packets. Since UDP is connectionless, the target exhausts bandwidth sending ICMP error replies.</div>
+      <div class="card-stats">
+        <div>Window: <span>5s</span></div>
+        <div>Threshold: <span>100 pkts</span></div>
+        <div>Protocol: <span>UDP</span></div>
+      </div>
+    </div>
+
+    <div class="attack-card" style="--card-accent:#ff4757" onclick="openLesson('dns')">
+      <div class="card-header">
+        <div class="card-icon">🌐</div>
+        <div class="card-title">DNS Amplification</div>
+        <div class="card-sev sev-HIGH">HIGH</div>
+      </div>
+      <div class="card-desc">Sends small DNS queries with a spoofed source IP. The DNS server sends large responses to the victim, amplifying the attack traffic.</div>
+      <div class="card-stats">
+        <div>Window: <span>5s</span></div>
+        <div>Threshold: <span>50 pkts</span></div>
+        <div>Protocol: <span>UDP/53</span></div>
+      </div>
+    </div>
+
+    <div class="attack-card" style="--card-accent:#ff4757" onclick="openLesson('http')">
+      <div class="card-header">
+        <div class="card-icon">🖥️</div>
+        <div class="card-title">HTTP Flood</div>
+        <div class="card-sev sev-HIGH">HIGH</div>
+      </div>
+      <div class="card-desc">Targets web servers by overwhelming ports 80, 443, 8080 with TCP connection requests, denying service to legitimate users.</div>
+      <div class="card-stats">
+        <div>Window: <span>10s</span></div>
+        <div>Threshold: <span>80 pkts</span></div>
+        <div>Protocol: <span>TCP</span></div>
+      </div>
+    </div>
+
+    <div class="attack-card" style="--card-accent:#ffa502" onclick="openLesson('null')">
+      <div class="card-header">
+        <div class="card-icon">👻</div>
+        <div class="card-title">NULL Scan</div>
+        <div class="card-sev sev-MEDIUM">MEDIUM</div>
+      </div>
+      <div class="card-desc">Sends TCP packets with no flags set. A stealth technique to map open ports while evading firewalls that only block SYN packets.</div>
+      <div class="card-stats">
+        <div>Window: <span>10s</span></div>
+        <div>Threshold: <span>10 pkts</span></div>
+        <div>Protocol: <span>TCP</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: HOW IT WORKS
+══════════════════════════════════════════════════════════ -->
+<div id="page-howitworks" class="page">
+  <div class="page-title">How It Works</div>
+  <div class="page-sub">Understanding the detection pipeline from packet to alert</div>
+
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <h4>Packet Capture</h4>
+        <p>Scapy listens passively on the network interface (e.g. eth0) and captures every incoming and outgoing packet. Each packet is parsed for source IP, destination IP, protocol, ports, and TCP flags, then written to a CSV file.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <h4>Rolling Buffer</h4>
+        <p>Every second, the detection loop reads only the new bytes from the CSV file using a byte offset. New packets are appended to a rolling DataFrame. Packets older than 35 seconds are expired. This ensures the engine always has a full view of the recent traffic window.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <h4>Rule Evaluation</h4>
+        <p>The detection engine runs all 8 rules against the buffer. Each rule filters by protocol, time window, and optionally TCP flags or destination ports. Packets are then grouped by source IP. If the count exceeds the threshold, an alert is generated.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">04</div>
+      <div class="step-content">
+        <h4>Alert Logging</h4>
+        <p>Each alert is saved to SQLite for querying and to a JSONL file for export. A 15-second cooldown prevents duplicate alerts from the same source IP and rule. Each alert gets a unique UUID event ID for traceability.</p>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">05</div>
+      <div class="step-content">
+        <h4>CLI & Dashboard</h4>
+        <p>Users can view alerts in real time via the live dashboard at localhost:8050, or use the interactive CLI to run commands like view_logs, summary, export_logs, and show_rules.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-top:1rem">
+    <div style="font-family:var(--head);font-size:0.85rem;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:1rem">SYSTEM ARCHITECTURE</div>
+    <div class="arch-grid">
+      <div class="arch-card">
+        <div class="arch-icon">📡</div>
+        <div class="arch-title">Acquisition</div>
+        <div class="arch-desc">acquisition.py — Scapy sniff(), BPF filter, writes pcap</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">⚙️</div>
+        <div class="arch-title">Preprocessing</div>
+        <div class="arch-desc">preprocessing.py — parses packets to CSV, thread-safe lock</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">🔍</div>
+        <div class="arch-title">Detection</div>
+        <div class="arch-desc">detection.py — 8 rules, rolling buffer, groupby src_ip</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">🗄️</div>
+        <div class="arch-title">Alert Logger</div>
+        <div class="arch-desc">alert_logger.py — SQLite + JSONL, cooldown, anonymise</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">💻</div>
+        <div class="arch-title">CLI</div>
+        <div class="arch-desc">cli.py — cmd module, view_logs, summary, export</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">📊</div>
+        <div class="arch-title">Dashboard</div>
+        <div class="arch-desc">dashboard.py — Dash/Plotly, live charts, alert table</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: LIVE ALERTS
+══════════════════════════════════════════════════════════ -->
+<div id="page-live" class="page">
+  <div class="live-header">
+    <h2 class="page-title" style="margin:0">Live Alerts</h2>
+    <button class="fetch-btn" onclick="fetchAlerts()">⟳ Refresh Alerts</button>
+    <button class="fetch-btn" style="margin-left:auto;border-color:rgba(255,71,87,0.3);color:var(--accent2);background:rgba(255,71,87,0.1)" onclick="simulateAlerts()">⚡ Simulate Demo</button>
+  </div>
+
+  <div class="stat-row" id="stat-row">
+    <div class="stat-card"><div class="stat-val" id="stat-total">—</div><div class="stat-lbl">Total Alerts</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-high" style="color:var(--accent2)">—</div><div class="stat-lbl">High Severity</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-medium" style="color:var(--warn)">—</div><div class="stat-lbl">Medium Severity</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-rules" style="color:var(--accent3)">—</div><div class="stat-lbl">Rules Triggered</div></div>
+  </div>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+    <table class="alerts-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Rule</th>
+          <th>Source IP</th>
+          <th>Count</th>
+          <th>Severity</th>
+          <th>Event ID</th>
+        </tr>
+      </thead>
+      <tbody id="alerts-body">
+        <tr><td colspan="6" class="no-data">Click "Refresh Alerts" to load from IDS, or "Simulate Demo" to preview sample data.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:1rem;font-family:var(--mono);font-size:0.7rem;color:var(--muted)">
+    ℹ️  Live data requires IDS to be running at localhost. Make sure <code style="color:var(--accent)">python3 main.py --start</code> is active.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     AI TUTOR PAGE
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-aitutor">
+  <div style="max-width:860px;margin:0 auto;padding:2rem 1rem">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:0.5rem">
+      <span style="font-size:2rem">🤖</span>
+      <div>
+        <h1 class="page-title" style="margin:0">AI Tutor</h1>
+        <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:4px">Powered by Google Gemini · Ask anything about IDS, network attacks, or cybersecurity</p>
+      </div>
+    </div>
+
+    <!-- Suggested questions -->
+    <div id="suggested-questions" style="display:flex;flex-wrap:wrap;gap:8px;margin:1.2rem 0">
+      <button class="suggest-btn" onclick="askSuggested(this)">What is a SYN Flood?</button>
+      <button class="suggest-btn" onclick="askSuggested(this)">How does IDS differ from a firewall?</button>
+      <button class="suggest-btn" onclick="askSuggested(this)">Explain TCP three-way handshake</button>
+      <button class="suggest-btn" onclick="askSuggested(this)">What is port scanning used for?</button>
+      <button class="suggest-btn" onclick="askSuggested(this)">How does brute force detection work?</button>
+      <button class="suggest-btn" onclick="askSuggested(this)">What is DNS amplification?</button>
+    </div>
+
+    <!-- Chat window -->
+    <div id="chat-window" style="background:var(--card);border:1px solid var(--border);border-radius:8px;height:460px;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:1rem">
+      <div class="chat-msg assistant">
+        <div class="chat-avatar">🛡️</div>
+        <div class="chat-bubble">
+          Hi! I'm your IDS AI Tutor. I can help you understand network attacks, how intrusion detection systems work, cybersecurity concepts, and the code behind this project.<br><br>
+          Try asking me a question or click one of the suggestions above!
+        </div>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div style="display:flex;gap:10px;margin-top:1rem">
+      <input id="chat-input" type="text" placeholder="Ask a question about IDS or network security..."
+        style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;color:var(--text);font-family:var(--body);font-size:0.88rem;outline:none"
+        onkeydown="if(event.key==='Enter')sendChat()"
+        onfocus="this.style.borderColor='var(--accent)'"
+        onblur="this.style.borderColor='var(--border)'"
+      />
+      <button onclick="sendChat()" id="send-btn"
+        style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:12px 20px;font-family:var(--head);font-weight:700;font-size:0.85rem;letter-spacing:1px;cursor:pointer;transition:opacity 0.2s">
+        SEND
+      </button>
+      <button onclick="clearChat()"
+        style="background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:6px;padding:12px 14px;font-size:0.8rem;cursor:pointer">
+        🗑
+      </button>
+    </div>
+    <p style="font-size:0.7rem;color:var(--muted);margin-top:8px;font-family:var(--mono)">⚠ Responses are AI-generated. Always verify critical security decisions with qualified professionals.</p>
+  </div>
+</div>
+
+<!-- Attack Detail Popup -->
+<div id="attack-detail-overlay" onclick="if(event.target===this)closeAttackDetail()"
+  style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem;display:none">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:2rem;position:relative;animation:slideUp 0.3s ease">
+    <button onclick="closeAttackDetail()"
+      style="position:absolute;top:1rem;right:1rem;background:var(--border);border:none;color:var(--muted);cursor:pointer;width:32px;height:32px;border-radius:4px;font-size:1rem">✕</button>
+    <div id="attack-detail-body"></div>
+  </div>
+</div>
+
+<!-- LESSON MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modal-content">
+    <button class="modal-close" onclick="closeLesson()">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ── Navigation ──────────────────────────────────────────────
+let quizScores = JSON.parse(localStorage.getItem('ids_quiz_scores') || '{}');
+let completed  = JSON.parse(localStorage.getItem('ids_completed')   || '[]');
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'live') startAutoRefresh();
+  else stopAutoRefresh();
+  if (id === 'attacks') updateProgressBar();
+}
+
+// ── Modal ───────────────────────────────────────────────────
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) closeLesson();
+}
+function closeLesson() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+// ── Lesson data ─────────────────────────────────────────────
+const lessons = {
+  syn: {
+    title: "SYN Flood",
+    severity: "HIGH",
+    icon: "🌊",
+    what: "A SYN Flood is a Denial of Service (DoS) attack that exploits the TCP three-way handshake. Normally, a client sends SYN, the server replies SYN-ACK, and the client confirms with ACK. In a SYN Flood, the attacker sends thousands of SYN packets but never sends the final ACK — leaving the server with thousands of half-open connections that fill up its connection table. Eventually the server cannot accept any new legitimate connections.",
+    how: "The attacker script sends SYN packets with random source ports to port 80 as fast as possible. Each packet is a new half-open connection that the server must wait for.",
+    detect: "Our IDS counts SYN packets (TCP flag = S) from each source IP within a 5-second window. If any single IP sends more than 50 SYN packets in 5 seconds, a HIGH severity ALERT is triggered.",
+    rule: `<span class="k">"SYN_FLOOD"</span>: {<br>  <span class="k">protocol</span>:    <span class="v">"TCP"</span>,<br>  <span class="k">flags</span>:       <span class="v">"S"</span>,  <span class="c">← SYN only</span><br>  <span class="k">window_secs</span>: <span class="v">5</span>,<br>  <span class="k">threshold</span>:   <span class="v">50</span>,  <span class="c">← 50 pkts in 5s</span><br>  <span class="k">severity</span>:    <span class="v">"HIGH"</span><br>}`,
+    quiz: { q: "What happens to the server during a SYN Flood?", opts: ["It crashes immediately", "Its connection table fills up and it cannot accept new connections", "It speeds up to handle the traffic", "Nothing — it is not affected"], ans: 1 }
+  },
+  portscan: {
+    title: "Port Scan",
+    severity: "MEDIUM",
+    icon: "🔎",
+    what: "A Port Scan is a reconnaissance technique used by attackers to discover which ports are open on a target machine. By knowing which ports are open, the attacker knows which services are running (e.g. port 22 = SSH, port 80 = HTTP) and can plan a more targeted attack. Port scanning itself is not an attack — it is the preparation phase before an attack.",
+    how: "The attacker sends one SYN packet to each port sequentially — port 1, 2, 3... up to hundreds of ports. If the port responds with SYN-ACK, it is open. If it responds with RST, it is closed.",
+    detect: "Our IDS tracks the number of unique destination ports accessed by a single source IP within a 10-second window. If more than 15 different ports are scanned, a MEDIUM severity ALERT is triggered.",
+    rule: `<span class="k">"PORT_SCAN"</span>: {<br>  <span class="k">protocol</span>:     <span class="v">"TCP"</span>,<br>  <span class="k">window_secs</span>:  <span class="v">10</span>,<br>  <span class="k">threshold</span>:    <span class="v">15</span>,  <span class="c">← 15 unique ports</span><br>  <span class="k">unique_ports</span>: <span class="v">True</span>,  <span class="c">← count distinct ports</span><br>  <span class="k">severity</span>:     <span class="v">"MEDIUM"</span><br>}`,
+    quiz: { q: "Why does PORT_SCAN use unique_ports=True instead of counting total packets?", opts: ["Because TCP packets are unreliable", "Because a port scan sends one packet to many different ports, not many packets to the same port", "Because UDP is faster", "To save memory"], ans: 1 }
+  },
+  brute: {
+    title: "Brute Force",
+    severity: "HIGH",
+    icon: "🔐",
+    what: "A Brute Force attack is when an attacker repeatedly tries to connect to a service by sending many authentication requests. Common targets are SSH (port 22), FTP (port 21), Telnet (port 23), and RDP (port 3389). The attacker may try thousands of username/password combinations until one works.",
+    how: "The attacker sends SYN packets to common service ports rapidly. Each SYN represents a new connection attempt — simulating a login try.",
+    detect: "Our IDS monitors SYN packets targeting service ports: 22, 21, 23, 3389, 5900, 110, 143, 80, 443, 8080. If a single source IP sends more than 20 SYN packets to these ports within 30 seconds, a HIGH severity ALERT is triggered.",
+    rule: `<span class="k">"BRUTE_FORCE"</span>: {<br>  <span class="k">protocol</span>:   <span class="v">"TCP"</span>,<br>  <span class="k">flags</span>:      <span class="v">"S"</span>,<br>  <span class="k">window_secs</span>: <span class="v">30</span>,<br>  <span class="k">threshold</span>:  <span class="v">20</span>,<br>  <span class="k">dst_ports</span>:  <span class="v">[22, 21, 23, 3389...]</span>,<br>  <span class="k">severity</span>:   <span class="v">"HIGH"</span><br>}`,
+    quiz: { q: "Why does Brute Force detection use a longer window (30s) compared to SYN Flood (5s)?", opts: ["Because brute force is less dangerous", "Because brute force attacks are slower and spread across multiple service ports", "Because the IDS has limited memory", "Because TCP is slower than UDP"], ans: 1 }
+  },
+  icmp: {
+    title: "ICMP Flood",
+    severity: "MEDIUM",
+    icon: "📶",
+    what: "ICMP Flood, also known as Ping Flood, is when the attacker sends a massive number of ICMP echo request packets (pings) to a target. The target must process each ping and send a reply, wasting CPU and bandwidth. If the flood is large enough, the target becomes slow or completely unresponsive.",
+    how: "The attacker runs a script that continuously sends ICMP echo request packets as fast as possible. Unlike TCP, ICMP requires no handshake so packets can be sent very rapidly.",
+    detect: "Our IDS counts ICMP packets from a single source IP within a 5-second window. If more than 30 ICMP packets arrive in 5 seconds, a MEDIUM severity ALERT is triggered.",
+    rule: `<span class="k">"ICMP_FLOOD"</span>: {<br>  <span class="k">protocol</span>:    <span class="v">"ICMP"</span>,<br>  <span class="k">window_secs</span>: <span class="v">5</span>,<br>  <span class="k">threshold</span>:   <span class="v">30</span>,<br>  <span class="k">severity</span>:    <span class="v">"MEDIUM"</span><br>}`,
+    quiz: { q: "What protocol does ICMP Flood use?", opts: ["TCP", "UDP", "ICMP", "HTTP"], ans: 2 }
+  },
+  udp: {
+    title: "UDP Flood",
+    severity: "HIGH",
+    icon: "💥",
+    what: "UDP Flood is a Denial of Service attack where the attacker sends a large number of UDP packets to random ports on the target. Since UDP is connectionless, the target machine checks each packet, finds no application listening on that port, and sends back an ICMP 'Destination Unreachable' error. This process exhausts the target's bandwidth and CPU.",
+    how: "The attacker sends UDP packets to port 53 (DNS) rapidly. Each packet triggers the target to check if anything is listening and respond.",
+    detect: "Our IDS counts UDP packets from a single source IP within a 5-second window. If more than 100 UDP packets arrive in 5 seconds, a HIGH severity ALERT is triggered.",
+    rule: `<span class="k">"UDP_FLOOD"</span>: {<br>  <span class="k">protocol</span>:    <span class="v">"UDP"</span>,<br>  <span class="k">window_secs</span>: <span class="v">5</span>,<br>  <span class="k">threshold</span>:   <span class="v">100</span>,<br>  <span class="k">severity</span>:    <span class="v">"HIGH"</span><br>}`,
+    quiz: { q: "Why does UDP Flood have a higher threshold (100) than SYN Flood (50)?", opts: ["Because UDP is more dangerous", "Because UDP traffic is normally higher volume and we need to avoid false positives", "Because UDP packets are larger", "Because the IDS cannot detect UDP"], ans: 1 }
+  },
+  dns: {
+    title: "DNS Amplification",
+    severity: "HIGH",
+    icon: "🌐",
+    what: "DNS Amplification is a DDoS attack that exploits DNS servers. The attacker sends small DNS query packets (60 bytes) but uses the victim's IP as the spoofed source address. The DNS server sends large DNS responses (up to 4000 bytes) directly to the victim. This amplifies the attack — a small query creates a massive response flood at the victim's end.",
+    how: "The attacker sends UDP packets to port 53 with spoofed source IPs. Our simulator sends real UDP packets to port 53 to trigger the DNS_AMPLIFICATION detection rule.",
+    detect: "Our IDS monitors the number of UDP packets sent to port 53 from a single source IP within a 5-second window. If more than 50 packets are detected, a HIGH severity ALERT is triggered.",
+    rule: `<span class="k">"DNS_AMPLIFICATION"</span>: {<br>  <span class="k">protocol</span>:    <span class="v">"UDP"</span>,<br>  <span class="k">window_secs</span>: <span class="v">5</span>,<br>  <span class="k">threshold</span>:   <span class="v">50</span>,<br>  <span class="k">dst_ports</span>:   <span class="v">[53]</span>,  <span class="c">← DNS port</span><br>  <span class="k">severity</span>:    <span class="v">"HIGH"</span><br>}`,
+    quiz: { q: "What makes DNS Amplification especially dangerous compared to a regular flood?", opts: ["It uses TCP which is harder to block", "A small query generates a much larger response, amplifying the attack traffic", "It targets only Windows machines", "It is very slow"], ans: 1 }
+  },
+  http: {
+    title: "HTTP Flood",
+    severity: "HIGH",
+    icon: "🖥️",
+    what: "HTTP Flood is an attack specifically targeting web servers. The attacker overwhelms a web server by sending a massive number of TCP SYN connection requests to web ports like 80 (HTTP), 443 (HTTPS), 8080, and 8443. The web server's connection table fills up and it can no longer serve legitimate users — causing a website outage.",
+    how: "The attacker sends SYN packets to multiple web ports. Unlike a general SYN Flood, this specifically targets web service ports to take down websites.",
+    detect: "Our IDS monitors SYN packets targeting web ports 80, 443, 8080, and 8443 from a single source IP within a 10-second window. If more than 80 packets arrive, a HIGH severity ALERT is triggered.",
+    rule: `<span class="k">"HTTP_FLOOD"</span>: {<br>  <span class="k">protocol</span>:    <span class="v">"TCP"</span>,<br>  <span class="k">flags</span>:       <span class="v">"S"</span>,<br>  <span class="k">window_secs</span>: <span class="v">10</span>,<br>  <span class="k">threshold</span>:   <span class="v">80</span>,<br>  <span class="k">dst_ports</span>:   <span class="v">[80, 443, 8080, 8443]</span>,<br>  <span class="k">severity</span>:    <span class="v">"HIGH"</span><br>}`,
+    quiz: { q: "What is the difference between SYN Flood and HTTP Flood in our IDS?", opts: ["There is no difference", "HTTP Flood specifically targets web ports (80, 443, 8080, 8443) while SYN Flood targets any port", "HTTP Flood is less severe", "HTTP Flood uses UDP"], ans: 1 }
+  },
+  null: {
+    title: "NULL Scan",
+    severity: "MEDIUM",
+    icon: "👻",
+    what: "NULL Scan is a stealthy port reconnaissance technique. The attacker sends TCP packets with NO flags set at all — completely empty. According to RFC 793, if a port is closed, the target should reply with RST. If a port is open, there is no response. This allows the attacker to quietly map which ports are open while evading basic firewalls that only filter SYN packets. Normal network traffic NEVER has empty TCP flags.",
+    how: "The attacker sends TCP packets with flags=0. Scapy records these as empty or '0' in the flags field. Since this never occurs in normal traffic, any occurrence is already suspicious.",
+    detect: "Our IDS looks for TCP packets where the flags field is empty, zero, or N/A. If a single source IP sends more than 10 null-flag packets within a 10-second window, a MEDIUM severity ALERT is triggered.",
+    rule: `<span class="k">"NULL_SCAN"</span>: {<br>  <span class="k">protocol</span>:    <span class="v">"TCP"</span>,<br>  <span class="k">flags</span>:       <span class="v">"NULL"</span>,  <span class="c">← no flags</span><br>  <span class="k">window_secs</span>: <span class="v">10</span>,<br>  <span class="k">threshold</span>:   <span class="v">10</span>,  <span class="c">← low — always suspicious</span><br>  <span class="k">severity</span>:    <span class="v">"MEDIUM"</span><br>}`,
+    quiz: { q: "Why does NULL Scan have a much lower threshold (10) compared to other attacks?", opts: ["Because NULL Scan is rare and needs less processing", "Because normal traffic NEVER has empty TCP flags, so even a few packets are already suspicious", "Because it uses less bandwidth", "To make detection faster"], ans: 1 }
+  }
+};
+
+function openLesson(id) {
+  const l = lessons[id];
+  const sevColor = l.severity === 'HIGH' ? 'var(--accent2)' : l.severity === 'MEDIUM' ? 'var(--warn)' : 'var(--accent3)';
+
+  document.getElementById('modal-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:0.25rem">
+      <span style="font-size:1.8rem">${l.icon}</span>
+      <div>
+        <div class="modal-title">${l.title}</div>
+        <div class="modal-subtitle">SEVERITY: <span style="color:${sevColor}">${l.severity}</span> &nbsp;|&nbsp; Click outside to close</div>
+      </div>
+    </div>
+
+    <div class="lesson-section">
+      <h3>What is ${l.title}?</h3>
+      <p>${l.what}</p>
+    </div>
+
+    <div class="lesson-section">
+      <h3>Attack Simulation</h3>
+      <div class="anim-box" id="anim-${id}">
+        <div class="anim-label">LIVE SIMULATION</div>
+        <div class="node attacker">💻<div class="node-label">Attacker</div></div>
+        <div class="node victim">🖥️<div class="node-label">Target</div></div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--muted);margin-top:0.5rem">${l.how}</p>
+    </div>
+
+    <div class="lesson-section">
+      <h3>How We Detect It</h3>
+      <p>${l.detect}</p>
+    </div>
+
+    <div class="lesson-section">
+      <h3>Detection Rule</h3>
+      <div class="rule-box">${l.rule}</div>
+    </div>
+
+    <div class="lesson-section">
+      <h3>Knowledge Check</h3>
+      <div class="quiz-box">
+        <div class="quiz-q">❓ ${l.quiz.q}</div>
+        <div class="quiz-options">
+          ${l.quiz.opts.map((o, i) => `<button class="quiz-opt" onclick="checkAnswer(this, ${i}, ${l.quiz.ans})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+        </div>
+        <div class="quiz-result" id="qr-${id}"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <span style="font-size:0.8rem;color:var(--muted);font-family:var(--mono)">Still confused?</span>
+      <button onclick="askAIAbout('${l.title}')" style="background:rgba(46,213,115,0.1);border:1px solid rgba(46,213,115,0.3);color:var(--accent3);border-radius:4px;padding:6px 14px;font-size:0.78rem;cursor:pointer;font-family:var(--body)">
+        🤖 Ask AI Tutor about ${l.title}
+      </button>
+    </div>
+  `;
+
+  document.getElementById('modal').classList.add('open');
+  startAnim(id, l.severity);
+}
+
+function startAnim(id, sev) {
+  const box = document.getElementById('anim-' + id);
+  if (!box) return;
+  const color = sev === 'HIGH' ? '#ff4757' : sev === 'MEDIUM' ? '#ffa502' : '#2ed573';
+  const count = sev === 'HIGH' ? 12 : 6;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'pkt';
+    p.style.cssText = `background:${color};top:${30 + Math.random()*50}%;animation-delay:${i * 0.15}s;animation-duration:${0.8 + Math.random()*0.4}s`;
+    box.appendChild(p);
+  }
+}
+
+function checkAnswer(btn, chosen, correct) {
+  const opts = btn.parentElement.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.style.pointerEvents = 'none');
+  opts[correct].classList.add('correct');
+  if (chosen !== correct) btn.classList.add('wrong');
+  const res = btn.closest('.quiz-box').querySelector('.quiz-result');
+  res.style.display = 'block';
+
+  const lessonId = Object.keys(lessons).find(k =>
+    document.querySelector('.modal-title').textContent === lessons[k].title
+  );
+
+  if (chosen === correct) {
+    res.style.color = 'var(--accent3)';
+    res.textContent = '✓ Correct! Well done.';
+    if (lessonId && !completed.includes(lessonId)) {
+      completed.push(lessonId);
+      localStorage.setItem('ids_completed', JSON.stringify(completed));
+    }
+    if (lessonId) {
+      quizScores[lessonId] = (quizScores[lessonId] || 0) + 1;
+      localStorage.setItem('ids_quiz_scores', JSON.stringify(quizScores));
+    }
+  } else {
+    res.style.color = 'var(--accent2)';
+    res.textContent = `✗ Not quite. The correct answer is: ${String.fromCharCode(65+correct)}.`;
+  }
+}
+
+function updateProgressBar() {
+  const total = Object.keys(lessons).length;
+  const done  = completed.length;
+  const pct   = Math.round((done / total) * 100);
+  const bar   = document.getElementById('progress-bar');
+  const lbl   = document.getElementById('progress-label');
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = `${done} / ${total} completed`;
+
+  // Mark completed cards
+  completed.forEach(id => {
+    const card = document.querySelector(`[onclick="openLesson('${id}')"]`);
+    if (card && !card.querySelector('.done-badge')) {
+      const badge = document.createElement('div');
+      badge.className = 'done-badge';
+      badge.textContent = '✓ Done';
+      badge.style.cssText = 'position:absolute;top:10px;right:10px;background:rgba(46,213,115,0.15);color:var(--accent3);border:1px solid rgba(46,213,115,0.3);font-family:var(--mono);font-size:0.65rem;padding:2px 8px;border-radius:2px';
+      card.style.position = 'relative';
+      card.appendChild(badge);
+    }
+  });
+}
+
+// ── Live Alerts ──────────────────────────────────────────────
+async function fetchAlerts() {
+  const tbody = document.getElementById('alerts-body');
+  tbody.innerHTML = `<tr><td colspan="6" class="no-data">⏳ Fetching alerts from IDS...</td></tr>`;
+
+  try {
+    // Check status first
+    const statusRes = await fetch('http://localhost:5000/api/status');
+    const status    = await statusRes.json();
+
+    // Update stat cards with real data
+    document.getElementById('stat-total').textContent = status.total_alerts || 0;
+
+    // Fetch alerts
+    const res    = await fetch('http://localhost:5000/api/alerts');
+    const alerts = await res.json();
+    renderAlerts(alerts);
+
+    // Show connection success
+    document.querySelector('.live-badge').innerHTML =
+      `<div class="live-dot"></div>IDS CONNECTED — ${status.total_packets} pkts`;
+
+  } catch {
+    tbody.innerHTML = `
+      <tr><td colspan="6" class="no-data">
+        ⚠️ Cannot connect to IDS API at localhost:5000<br><br>
+        Make sure these are running in Ubuntu:<br><br>
+        <code style="color:var(--accent)">Terminal 1: python3 api.py</code><br>
+        <code style="color:var(--accent)">Terminal 2: sudo python3 main.py --interface eth0 --protocol all --duration 300 --start</code><br><br>
+        Or click <strong style="color:var(--warn)">Simulate Demo</strong> to preview with sample data.
+      </td></tr>`;
+  }
+}
+
+// Auto-refresh every 5 seconds when on live page
+let autoRefreshTimer = null;
+function startAutoRefresh() {
+  stopAutoRefresh();
+  autoRefreshTimer = setInterval(() => {
+    if (document.getElementById('page-live').classList.contains('active')) {
+      fetchAlerts();
+    }
+  }, 5000);
+}
+function stopAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+}
+
+// ── Attack details for Live Alerts popup ────────────────────
+const attackInfo = {
+  SYN_FLOOD: {
+    icon: "🌊",
+    name: "SYN Flood",
+    simple: "Someone is bombarding the server with fake connection requests and never completing them. This fills up the server's connection table until it can't accept real users anymore.",
+    analogy: "🍔 Imagine 1000 people walking into McDonald's, ordering food, then walking away without paying — the kitchen gets overwhelmed and real customers can't get served.",
+    whatHappens: "The attacker sends thousands of SYN packets but never replies with ACK. The server keeps waiting for each connection to complete, wasting memory and CPU.",
+    howDetected: "Our IDS counts SYN packets from the same IP. If one IP sends more than 50 SYN packets in 5 seconds → ALERT!",
+    danger: "The server becomes slow or completely unreachable by real users.",
+    severity: "HIGH"
+  },
+  PORT_SCAN: {
+    icon: "🔎",
+    name: "Port Scan",
+    simple: "Someone is knocking on every door of the server to see which ones are open. This is usually done before a real attack to find weaknesses.",
+    analogy: "🏠 Imagine someone walking down a street and trying every door knob on every house to see which ones are unlocked.",
+    whatHappens: "The attacker sends one packet to many different ports quickly. Open ports reply, closed ports don't — this tells the attacker which services are running.",
+    howDetected: "Our IDS counts how many different ports one IP accesses. If more than 15 unique ports are scanned in 10 seconds → ALERT!",
+    danger: "By itself it's not destructive, but it's the preparation step before a more serious attack.",
+    severity: "MEDIUM"
+  },
+  BRUTE_FORCE: {
+    icon: "🔐",
+    name: "Brute Force",
+    simple: "Someone is repeatedly trying to log in to a service by guessing passwords over and over again until one works.",
+    analogy: "🔑 Imagine someone trying every possible key on a keyring to open a lock — they just keep trying until something works.",
+    whatHappens: "The attacker sends many login requests to services like SSH (remote access), FTP (file transfer), or RDP (Windows remote desktop) very quickly.",
+    howDetected: "Our IDS monitors login ports (22, 21, 23, 3389). If one IP sends more than 20 connection attempts in 30 seconds → ALERT!",
+    danger: "If successful, the attacker gains full access to the account and potentially the entire system.",
+    severity: "HIGH"
+  },
+  ICMP_FLOOD: {
+    icon: "📶",
+    name: "ICMP Flood (Ping Flood)",
+    simple: "Someone is pinging the server millions of times per second to overwhelm it. The server has to respond to every ping, wasting all its resources.",
+    analogy: "📞 Imagine someone calling your phone non-stop, thousands of times a minute. You can't make or receive any real calls because the line is always busy.",
+    whatHappens: "The attacker sends massive amounts of ICMP echo requests (pings). The server must respond to each one, consuming bandwidth and CPU.",
+    howDetected: "Our IDS counts ICMP packets from one IP. If more than 30 ICMP packets arrive in 5 seconds → ALERT!",
+    danger: "The server becomes too busy responding to fake pings to serve real users.",
+    severity: "MEDIUM"
+  },
+  UDP_FLOOD: {
+    icon: "💥",
+    name: "UDP Flood",
+    simple: "Someone is sending huge amounts of random data packets to the server. The server has to check each one and send back an error message, wasting all its bandwidth.",
+    analogy: "📬 Imagine receiving millions of empty envelopes every minute. You have to open each one, find nothing inside, and send a 'return to sender' reply for every single one.",
+    whatHappens: "The attacker floods random ports with UDP packets. Since UDP has no connection setup, packets arrive instantly. The server checks each port, finds nothing, and sends an ICMP error back.",
+    howDetected: "Our IDS counts UDP packets from one IP. If more than 100 UDP packets arrive in 5 seconds → ALERT!",
+    danger: "Server bandwidth and CPU get exhausted handling useless packets.",
+    severity: "HIGH"
+  },
+  DNS_AMPLIFICATION: {
+    icon: "🌐",
+    name: "DNS Amplification",
+    simple: "The attacker tricks DNS servers into flooding the victim with massive amounts of data. A small request becomes a huge response — the attack gets 'amplified'.",
+    analogy: "📣 Imagine whispering a question to 1000 people, but telling them to shout the answer at your neighbour. A tiny message becomes a deafening flood of noise.",
+    whatHappens: "The attacker sends small DNS queries (pretending to be the victim). The DNS server sends large DNS responses directly to the victim, flooding them with data they never asked for.",
+    howDetected: "Our IDS counts UDP packets going to port 53 (DNS). If more than 50 packets in 5 seconds → ALERT!",
+    danger: "The victim's internet connection gets completely flooded with unwanted traffic.",
+    severity: "HIGH"
+  },
+  HTTP_FLOOD: {
+    icon: "🖥️",
+    name: "HTTP Flood",
+    simple: "Someone is sending millions of fake website requests to crash a web server, making the website unavailable for real visitors.",
+    analogy: "🛒 Imagine a shopping website where 100,000 bots all try to checkout at the same time — the website crashes and real shoppers can't buy anything.",
+    whatHappens: "The attacker sends enormous numbers of connection requests to web ports (80 for HTTP, 443 for HTTPS). The web server runs out of connections and can't serve real users.",
+    howDetected: "Our IDS monitors web ports (80, 443, 8080, 8443). If more than 80 SYN packets in 10 seconds → ALERT!",
+    danger: "The website goes down and becomes unreachable for legitimate users.",
+    severity: "HIGH"
+  },
+  NULL_SCAN: {
+    icon: "👻",
+    name: "NULL Scan (Stealth Probe)",
+    simple: "A sneaky way to secretly scan a server's ports without being detected by basic firewalls. The attacker sends 'empty' packets with no information.",
+    analogy: "🕵️ Imagine a spy sliding a blank piece of paper under every door — if someone picks it up and reacts, they know someone is home. If nobody reacts, the room is empty.",
+    whatHappens: "Normal network packets always have TCP flags set. NULL scan sends packets with zero flags — which is completely abnormal. Closed ports reply with RST, open ports stay silent.",
+    howDetected: "Our IDS looks for TCP packets with empty flags (which NEVER happen in normal traffic). If more than 10 null packets in 10 seconds → ALERT!",
+    danger: "Allows attackers to quietly map the network without triggering basic security systems.",
+    severity: "MEDIUM"
+  }
+};
+
+function showAttackDetail(rule) {
+  const info = attackInfo[rule];
+  if (!info) return;
+
+  const sevColor = info.severity === 'HIGH' ? '#ff4757' : info.severity === 'MEDIUM' ? '#ffa502' : '#2ed573';
+  const sevBg    = info.severity === 'HIGH' ? 'rgba(255,71,87,0.1)' : info.severity === 'MEDIUM' ? 'rgba(255,165,2,0.1)' : 'rgba(46,213,115,0.1)';
+
+  document.getElementById('attack-detail-overlay').style.display = 'flex';
+  document.getElementById('attack-detail-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem">
+      <span style="font-size:2.5rem">${info.icon}</span>
+      <div>
+        <div style="font-family:var(--head);font-size:1.4rem;font-weight:700;letter-spacing:2px;text-transform:uppercase">${info.name}</div>
+        <div style="display:inline-block;margin-top:6px;padding:3px 12px;border-radius:3px;background:${sevBg};color:${sevColor};border:1px solid ${sevColor};font-family:var(--mono);font-size:0.7rem;font-weight:bold">${info.severity} SEVERITY</div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg);border-left:3px solid ${sevColor};border-radius:0 6px 6px 0;padding:1rem 1.25rem;margin-bottom:1.25rem">
+      <div style="font-family:var(--head);font-size:0.75rem;font-weight:700;letter-spacing:2px;color:${sevColor};margin-bottom:0.5rem">WHAT IS THIS?</div>
+      <div style="font-size:0.88rem;line-height:1.75;color:var(--text)">${info.simple}</div>
+    </div>
+
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:1rem 1.25rem;margin-bottom:1.25rem">
+      <div style="font-family:var(--head);font-size:0.75rem;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:0.5rem">EASY ANALOGY</div>
+      <div style="font-size:0.88rem;line-height:1.75;color:var(--text)">${info.analogy}</div>
+    </div>
+
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:1rem 1.25rem;margin-bottom:1.25rem">
+      <div style="font-family:var(--head);font-size:0.75rem;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:0.5rem">WHAT ACTUALLY HAPPENS?</div>
+      <div style="font-size:0.88rem;line-height:1.75;color:var(--text)">${info.whatHappens}</div>
+    </div>
+
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:1rem 1.25rem;margin-bottom:1.25rem">
+      <div style="font-family:var(--head);font-size:0.75rem;font-weight:700;letter-spacing:2px;color:var(--accent3);margin-bottom:0.5rem">🛡️ HOW OUR IDS DETECTS IT</div>
+      <div style="font-size:0.88rem;line-height:1.75;color:var(--text)">${info.howDetected}</div>
+    </div>
+
+    <div style="background:rgba(255,71,87,0.07);border:1px solid rgba(255,71,87,0.2);border-radius:6px;padding:1rem 1.25rem">
+      <div style="font-family:var(--head);font-size:0.75rem;font-weight:700;letter-spacing:2px;color:var(--accent2);margin-bottom:0.5rem">⚠️ WHY IS THIS DANGEROUS?</div>
+      <div style="font-size:0.88rem;line-height:1.75;color:var(--text)">${info.danger}</div>
+    </div>
+  `;
+}
+
+function closeAttackDetail() {
+  document.getElementById('attack-detail-overlay').style.display = 'none';
+}
+
+function renderAlerts(alerts) {
+  if (!alerts.length) {
+    document.getElementById('alerts-body').innerHTML = '<tr><td colspan="6" class="no-data">No alerts recorded yet. Try running an attack simulation.</td></tr>';
+    return;
+  }
+  const sevColor = s => s === 'HIGH' ? 'var(--accent2)' : s === 'MEDIUM' ? 'var(--warn)' : 'var(--accent3)';
+  document.getElementById('alerts-body').innerHTML = alerts.slice(0,50).map(a => `
+    <tr>
+      <td>${a.timestamp || '—'}</td>
+      <td>
+        <span onclick="showAttackDetail('${a.rule}')"
+          style="color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-style:dotted"
+          title="Click to learn about this attack">
+          ${a.rule || '—'} ℹ️
+        </span>
+      </td>
+      <td>${a.src_ip || '—'}</td>
+      <td>${a.count || '—'}</td>
+      <td style="color:${sevColor(a.severity)};font-weight:bold">${a.severity || '—'}</td>
+      <td style="color:var(--muted);font-size:0.65rem">${(a.event_id || '').slice(0,8)}...</td>
+    </tr>`).join('');
+
+  const high  = alerts.filter(a => a.severity === 'HIGH').length;
+  const med   = alerts.filter(a => a.severity === 'MEDIUM').length;
+  const rules = new Set(alerts.map(a => a.rule)).size;
+  document.getElementById('stat-total').textContent  = alerts.length;
+  document.getElementById('stat-high').textContent   = high;
+  document.getElementById('stat-medium').textContent = med;
+  document.getElementById('stat-rules').textContent  = rules;
+}
+
+function simulateAlerts() {
+  const rules = ['SYN_FLOOD','PORT_SCAN','BRUTE_FORCE','ICMP_FLOOD','UDP_FLOOD','DNS_AMPLIFICATION','HTTP_FLOOD','NULL_SCAN'];
+  const sevs  = { SYN_FLOOD:'HIGH', PORT_SCAN:'MEDIUM', BRUTE_FORCE:'HIGH', ICMP_FLOOD:'MEDIUM', UDP_FLOOD:'HIGH', DNS_AMPLIFICATION:'HIGH', HTTP_FLOOD:'HIGH', NULL_SCAN:'MEDIUM' };
+  const demo  = rules.map((r, i) => ({
+    timestamp: new Date(Date.now() - i * 8000).toISOString().replace('T',' ').slice(0,19),
+    rule: r, src_ip: `192.168.1.${10 + i}`,
+    count: Math.floor(Math.random() * 150) + 20,
+    severity: sevs[r],
+    event_id: crypto.randomUUID()
+  }));
+  renderAlerts(demo);
+}
+function resetProgress() {
+  if (!confirm('Reset all quiz progress?')) return;
+  completed  = [];
+  quizScores = {};
+  localStorage.removeItem('ids_completed');
+  localStorage.removeItem('ids_quiz_scores');
+  document.querySelectorAll('.done-badge').forEach(b => b.remove());
+  updateProgressBar();
+}
+
+// Init on load
+window.addEventListener('load', () => {
+  updateProgressBar();
+});
+
+// ── AI Tutor ─────────────────────────────────────────────────
+const IDS_SYSTEM_PROMPT = `You are an IDS (Intrusion Detection System) AI Tutor embedded in a cybersecurity learning platform for students at TAR UMT (Malaysia). The platform teaches students about a Python-based School Network IDS project.
+
+The IDS detects these attacks: SYN Flood, Port Scan, Brute Force, ICMP Flood, UDP Flood, DNS Amplification, HTTP Flood, NULL Scan.
+
+Tech stack: Python, Scapy (packet capture), Pandas (preprocessing), SQLite (alerts), Dash/Plotly (dashboard), Flask API, WeasyPrint (PDF reports).
+
+Your role:
+- Explain cybersecurity and networking concepts clearly and simply for university students
+- Help students understand how the IDS works, what each attack means, and why detection rules are set the way they are
+- Be encouraging, friendly, and educational
+- Use analogies to make hard concepts easy (e.g. "think of a SYN flood like someone knocking on 1000 doors and running away")
+- Keep responses concise but thorough — use short paragraphs and bullet points where helpful
+- When relevant, mention how the concept relates to the School IDS project
+- Do NOT write actual exploit code or help with real attacks
+- Format: use **bold** for key terms, \`code\` for technical terms/port numbers/protocols`;
+
+let chatHistory = [];
+
+function formatBotMessage(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+function appendMessage(role, content, isTyping = false) {
+  const win = document.getElementById('chat-window');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  if (isTyping) div.id = 'typing-indicator';
+
+  const avatar = role === 'assistant' ? '🛡️' : '👤';
+  const bubbleContent = isTyping
+    ? `<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>`
+    : (role === 'assistant' ? formatBotMessage(content) : content);
+
+  div.innerHTML = `<div class="chat-avatar">${avatar}</div><div class="chat-bubble">${bubbleContent}</div>`;
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+  return div;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('send-btn');
+  const question = input.value.trim();
+  if (!question) return;
+
+  input.value = '';
+  appendMessage('user', question);
+
+  chatHistory.push({ role: 'user', content: question });
+
+  // Show typing indicator
+  appendMessage('assistant', '', true);
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  input.disabled = true;
+
+  try {
+    const response = await fetch('http://localhost:5000/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: IDS_SYSTEM_PROMPT,
+        messages: chatHistory
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    const reply = data.reply || 'Sorry, I could not get a response. Please try again.';
+
+    chatHistory.push({ role: 'assistant', content: reply });
+
+    // Remove typing indicator and add real response
+    document.getElementById('typing-indicator')?.remove();
+    appendMessage('assistant', reply);
+
+  } catch (err) {
+    document.getElementById('typing-indicator')?.remove();
+    appendMessage('assistant', `⚠️ ${err.message.includes('GEMINI_API_KEY') ? err.message : 'Could not connect to IDS API. Make sure <code>python3 api.py</code> is running in a terminal.'}`);
+  }
+
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  input.disabled = false;
+  input.focus();
+}
+
+function askSuggested(btn) {
+  document.getElementById('chat-input').value = btn.textContent;
+  sendChat();
+}
+
+function askAIAbout(topic) {
+  closeLesson();
+  // Navigate to AI Tutor tab
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-aitutor').classList.add('active');
+  document.querySelector('[onclick*="aitutor"]').classList.add('active');
+  // Pre-fill question
+  document.getElementById('chat-input').value = `Can you explain ${topic} in simple terms and how the IDS detects it?`;
+  document.getElementById('chat-input').focus();
+}
+
+function clearChat() {
+  chatHistory = [];
+  const win = document.getElementById('chat-window');
+  win.innerHTML = `<div class="chat-msg assistant">
+    <div class="chat-avatar">🛡️</div>
+    <div class="chat-bubble">Chat cleared! Ask me anything about IDS or cybersecurity.</div>
+  </div>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "total_packets": 849,
+  "unique_src_ips": 14,
+  "protocol_counts": {
+    "TCP": 591,
+    "UDP": 228,
+    "ICMP": 8,
+    "Other": 22
+  }
+}

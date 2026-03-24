@@ -1,0 +1,204 @@
+================================================================
+  SCHOOL NETWORK IDS — HOW TO RUN (UBUNTU)
+  BMCS3413 Project II  |  TAR UMT
+================================================================
+
+
+FIRST TIME SETUP (do this once only)
+---------------------------------------------------------------
+
+1. Install system packages
+
+   sudo apt update
+   sudo apt install python3 python3-pip nmap hping3 -y
+   sudo apt install libpango-1.0-0 libpangoft2-1.0-0 -y   ← for PDF reports
+
+2. Install Python dependencies
+
+   sudo pip install scapy dash plotly pandas jinja2 weasyprint --break-system-packages
+
+3. Create project folders
+
+   mkdir -p school-ids/{data,logs,reports,captures}
+   cd school-ids
+
+4. Make sure all these files are inside school-ids/:
+   - main.py
+   - acquisition.py
+   - preprocessing.py
+   - dashboard.py
+   - detection.py
+   - alert_logger.py
+   - reporter.py
+   - cli.py             ← NEW file (interactive CLI)
+   - flood_test.py
+
+
+HOW TO RUN (every time)
+---------------------------------------------------------------
+
+Open 3 separate terminals inside the school-ids folder.
+
+
+TERMINAL 1 — Start the dashboard:
+
+   python3 main.py --dashboard
+   Then open browser → http://localhost:8050
+
+
+TERMINAL 2 — Start packet capture (needs sudo):
+
+   sudo python3 main.py --interface eth0 --protocol all --duration 120 --start
+
+   Replace eth0 with your interface name (run: ip a)
+   Common names: eth0, ens33, wlan0, enp0s3
+
+   After capture ends, generate report:
+   python3 main.py --report
+
+
+TERMINAL 3 — Run attack simulator:
+
+   sudo python3 flood_test.py
+
+   The simulator now auto-detects your LAN IP.
+   You can also specify manually:
+   sudo python3 flood_test.py --target 192.168.1.100
+
+   Pick from the menu:
+   1 = SYN Flood
+   2 = Port Scan
+   3 = ICMP Flood
+   4 = UDP Flood
+   5 = Brute Force  ← NEW
+   6 = Run all
+
+
+INTERACTIVE CLI (review alerts, export reports)
+---------------------------------------------------------------
+
+   python3 main.py --cli
+
+   or directly:
+   python3 cli.py
+
+   Available commands:
+   ┌──────────────────┬──────────────────────────────────────────┐
+   │ Command          │ Description                              │
+   ├──────────────────┼──────────────────────────────────────────┤
+   │ view_logs [N]    │ Show last N alerts (default 20)          │
+   │ summary          │ Show counts by attack type and severity  │
+   │ export_logs [p]  │ Export HTML report to path p             │
+   │ export_pdf  [p]  │ Export PDF report to path p              │
+   │ show_rules       │ Show all detection rules and thresholds  │
+   │ show_packets [N] │ Show last N captured packets             │
+   │ clear_alerts     │ Delete all stored alerts (reset)         │
+   │ quit             │ Exit the CLI                             │
+   └──────────────────┴──────────────────────────────────────────┘
+
+
+OPTIONAL: IP ANONYMISATION
+---------------------------------------------------------------
+
+   To mask the last octet of source IPs in all logs (192.168.1.5 → 192.168.1.X):
+
+   export IDS_ANONYMISE=true
+   sudo python3 main.py --start ...
+
+
+WHAT TO EXPECT ON THE DASHBOARD
+---------------------------------------------------------------
+
+   Packet Rate Graph   → Sharp spike going upward during attacks
+   Protocol Pie Chart  → Updates based on traffic type
+   Top Talkers Table   → Attacker IP with high packet count
+   Alert Table         → Alert fires after threshold is crossed
+
+
+GENERATE REPORT (after capture ends)
+---------------------------------------------------------------
+
+   python3 main.py --report
+   # Prompts for HTML (always) and optionally PDF
+
+   Or directly:
+   python3 -c "from reporter import generate_html_report; generate_html_report()"
+
+   Open report:
+   xdg-open reports/session_report.html
+
+
+FILE STRUCTURE REFERENCE
+---------------------------------------------------------------
+
+school-ids/
+├── main.py               ← entry point
+├── acquisition.py        ← packet capture (Scapy) with error handling
+├── preprocessing.py      ← packet parsing → CSV (thread-safe)
+├── dashboard.py          ← live web dashboard
+├── detection.py          ← SYN flood, port scan, brute force, ICMP, UDP
+├── alert_logger.py       ← SQLite + JSONL alert store
+├── reporter.py           ← HTML and PDF reports
+├── cli.py                ← interactive CLI shell (NEW)
+├── flood_test.py         ← attack simulator (auto LAN IP target)
+├── data/
+│   ├── packets.csv       ← live packet records
+│   ├── summary.json      ← session statistics
+│   ├── alerts.db         ← SQLite alert database
+│   └── alerts.jsonl      ← JSONL alert feed (was alerts.json)
+├── logs/
+│   └── capture.log       ← audit log
+├── reports/
+│   ├── session_report.html
+│   └── session_report.pdf
+└── captures/
+    └── *.pcap            ← raw packet files
+
+
+COMMON ERRORS AND FIXES
+---------------------------------------------------------------
+
+Error: Permission denied on sniff
+Fix:   Always use sudo when running main.py --start and flood_test.py
+
+Error: Interface not found
+Fix:   Run 'ip a' and use the exact name shown (e.g. ens33 not eth0)
+
+Error: Port 8050 already in use
+Fix:   sudo kill $(lsof -t -i:8050)
+
+Error: No module named 'scapy'
+Fix:   pip3 install scapy
+
+Error: Dashboard shows no data
+Fix:   Start capture in Terminal 2 first, then run flood_test.py
+       Check data/packets.csv exists: ls -la data/
+
+Error: weasyprint errors on PDF
+Fix:   sudo apt install libpango-1.0-0 libpangoft2-1.0-0 -y
+
+Error: No alerts firing from flood_test.py
+Fix:   The simulator uses your LAN IP automatically.
+       Make sure the IDS is capturing on the SAME interface.
+       Run: ip a   to check your interface name.
+
+================================================================
+  Attack from windows
+================================================================
+
+# Basic ping flood (triggers ICMP_FLOOD)
+ping <ubuntu-ip> -t -l 65500
+
+# Port scan with nmap (if installed)
+nmap -sS <ubuntu-ip>
+
+
+# On Windows, install Npcap first: https://npcap.com
+pip install scapy
+sudo python flood_test_windows.py --target <ubuntu-vm-ip>
+
+sudo python flood_test_windows.py --target 192.168.0.110
+
+================================================================
+  END OF GUIDE
+================================================================
